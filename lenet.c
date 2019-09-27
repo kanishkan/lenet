@@ -1,8 +1,6 @@
-#define _DEBUG
-
-#ifdef _DEBUG
+#ifdef HOST_DEBUG
 #include <stdio.h>
-#endif /* _DEBUG */
+#endif /* HOST_DEBUG */
  
 #include "weights.h"
 
@@ -109,6 +107,7 @@ int argmax(char* numbers, int len)
 }
 
 volatile int predicted_number;
+volatile unsigned int ecc, lcc;
 
 int main()
 {
@@ -130,13 +129,19 @@ int main()
 
 	predicted_number = argmax(net_out, 10);
 
-#ifdef _DEBUG
+#ifdef HOST_DEBUG
 	printf("Outputs of the last layer:\n");
 	for (i = 0; i < 10; i++) {
 		printf("%d:%4d\n", i, net_out[i]);
 	}
 	printf("\nPredicted number is %d\n\n", predicted_number);
-#endif /* _DEBUG */
+#else
+	// The ECC and LCC instruction returns cycle count information
+	// Useful to profile the design on FPGA
+	unsigned int tmp;
+	_TCE_ECC(tmp, ecc);
+	_TCE_LCC(tmp, lcc);
+#endif /* HOST_DEBUG */
 	
 	return 0;
 }
