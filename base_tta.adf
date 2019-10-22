@@ -852,7 +852,7 @@
   <address-space name="data">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>8191</max-address>
+    <max-address>65535</max-address>
   </address-space>
 
   <address-space name="instructions">

@@ -8,11 +8,13 @@ HOST_CC = gcc
 
 # TCE flags
 TCE_CC = tcecc
-TCC_FLAGS = -O3
+TCC_FLAGS = -O3 --bubblefish2-scheduler
 
 PROC_DESIGN=base_tta
 ADF_FILE=$(PROC_DESIGN).adf
 SYMBOL_NAMES=predicted_number,ecc,lcc
+
+HDB_FILES="generate_base32.hdb,generate_rf_iu.hdb,asic_130nm_1.5V.hdb,almaif.hdb"
 
 # Benchmark source
 SRC = $(BENCH).c
@@ -26,7 +28,8 @@ host: header weights.h
 	$(HOST_CC) $(SRC) -o lenet -DHOST_DEBUG
 
 $(BENCH).tpef: header weights.h $(SRC) $(ADF_FILE)
-	$(TCE_CC) $(TCC_FLAGS) -a $(ADF_FILE) -o $(BENCH).tpef $(SRC) -k $(SYMBOL_NAMES)
+	$(TCE_CC) $(TCC_FLAGS) -a $(ADF_FILE) \
+		-o $(BENCH).tpef $(SRC) -k $(SYMBOL_NAMES)
 
 tce: $(BENCH).tpef
 
@@ -38,8 +41,13 @@ asm: tce
 
 vhdl: tce
 	rm -rf proge-out *.img
-	generateprocessor -d onchip -f onchip -e tta_core -i $(PROC_DESIGN).idf -g AlmaIFIntegrator -o proge-out -p $(BENCH).tpef $(ADF_FILE)
-	generatebits --verbose -d -w 4 -e tta_core -p $(BENCH).tpef -x proge-out $(ADF_FILE)
+	generateprocessor -d onchip -f onchip -e tta_core \
+		-g AlmaIFIntegrator -o proge-out \
+		--hdb-list $(HDB_FILES) \
+		--icd-arg-list="debugger:external" \
+		-p $(BENCH).tpef $(ADF_FILE)
+	generatebits --verbose -d -w 4 -e tta_core \
+		-p $(BENCH).tpef -x proge-out $(ADF_FILE)
 
 all: host tce
 
