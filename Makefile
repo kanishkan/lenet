@@ -14,7 +14,7 @@ PROC_DESIGN=base_tta
 ADF_FILE=$(PROC_DESIGN).adf
 SYMBOL_NAMES=predicted_number,ecc,lcc
 
-HDB_FILES="generate_base32.hdb,generate_rf_iu.hdb,asic_130nm_1.5V.hdb,almaif.hdb"
+HDB_FILES="generate_base32.hdb,generate_rf_iu.hdb,almaif.hdb,asic_130nm_1.5V.hdb"
 
 # Benchmark source
 SRC = $(BENCH).c
