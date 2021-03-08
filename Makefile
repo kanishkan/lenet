@@ -36,6 +36,10 @@ tce: $(BENCH).tpef
 tcesim: tce
 	tput setaf 5; echo "Runtime: $$(echo quit | ttasim -a $(ADF_FILE) -p $(BENCH).tpef -e 'run; info proc cycles;' | sed -n 2p) cycles"
 
+energy: tce
+	echo "$(echo quit | ttasim -a $(ADF_FILE) -p $(BENCH).tpef -e 'run; info proc stats;')\n" >> log.txt
+	python3 tce_energy_model.py --adf $(ADF_FILE) --log log.txt
+
 asm: tce
 	tcedisasm -o $(BENCH).asm $(ADF_FILE) $(BENCH).tpef
 
