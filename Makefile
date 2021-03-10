@@ -18,8 +18,8 @@ SRC = lenet.c
 
 .PHONY : clean all host tce header test tcesim vhdl
 
-weights.h: generate_header.py weights.npy
-	./generate_header.py
+weights.h: ./scripts/generate_header.py weights.npy
+	./scripts/generate_header.py
 
 header: weights.h
 
@@ -35,9 +35,9 @@ tce: lenet.tpef
 tcesim: lenet.tpef
 	tput setaf 5; echo "Runtime: $$(echo quit | ttasim -a $(ADF_FILE) -p lenet.tpef -e 'run; info proc cycles;' | sed -n 2p) cycles"
 
-energy: lenet.tpef
+energy: lenet.tpef ./scripts/tce_energy_model.py
 	echo "$$(echo quit | ttasim -a $(ADF_FILE) -p lenet.tpef -e 'run; info proc stats;')\n" > log.txt
-	python3 tce_energy_model.py --adf $(ADF_FILE) --log log.txt
+	python3 ./scripts/tce_energy_model.py --adf $(ADF_FILE) --log log.txt
 
 asm: lenet.tpef
 	tcedisasm -o lenet.asm $(ADF_FILE) lenet.tpef
@@ -55,5 +55,5 @@ vhdl: lenet.tpef
 all: host tce
 
 clean:
-	rm -rf *.tpef lenet weights.h proge-out *.asm *.img *.dot log.txt
+	rm -rf *.tpef lenet weights.h proge-out *.asm *.img *.dot log.txt *.trace* *.S
 
