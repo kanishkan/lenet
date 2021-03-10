@@ -140,10 +140,10 @@ int main()
     printf("\nPredicted number is %d\n\n", predicted_number);
 #else
     // The ECC and LCC instruction returns cycle count information
-    // Useful to profile the design on FPGA
-    unsigned int tmp;
-    _TCE_ECC(tmp, ecc);
-    _TCE_LCC(tmp, lcc);
+    // Useful to profile the design on FPGA (enable them for FPGA flow)
+    // unsigned int tmp;
+    // _TCE_ECC(tmp, ecc);
+    // _TCE_LCC(tmp, lcc);
 #endif /* HOST_DEBUG */
 
     return 0;
