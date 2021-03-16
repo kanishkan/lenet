@@ -14,7 +14,7 @@ fi
 
 # Install basic tools
 sudo apt install gedit
-pip install --user imageio
+python3 -m pip install --user imageio
 
 # Update TCE Toolset
 sudo apt update --allow-insecure-repositories
