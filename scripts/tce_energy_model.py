@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import re
 from collections import Counter
 import argparse
+from functools import reduce
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--adf', type=str, help='ADF file', required=True)
@@ -191,9 +192,10 @@ for fu_name, ops in item_ops.items():
     for op_name_orig, num in ops.items():
         item_energy[fu_name][op_name_orig] = 0
         area_factor = 137
-        op_width = ''.join(list(filter(str.isdigit, op_name_orig.lower())))  # get number from string
-        op_width = int(op_width) if op_width else 32  # default 32bits
-        op_name = op_name_orig.replace(str(op_width), '').lower()  # remove width from operation name
+        op_name_width_split = re.split('(\d+)', op_name_orig.lower())
+        op_name = op_name_width_split[0]
+        op_width_list = [int(i) for i in filter(str.isdigit, op_name_width_split)]
+        op_width = 32 if len(op_width_list)==0 else reduce((lambda x,y: x*y), op_width_list)
 
         # energy
         if callable(base_energy_per_op[op_name]):
