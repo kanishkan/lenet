@@ -33,7 +33,8 @@ lenet.tpef: weights.h $(SRC) $(ADF_FILE)
 tce: lenet.tpef
 
 tcesim: lenet.tpef
-	tput setaf 5; echo "Runtime: $$(echo quit | ttasim -a $(ADF_FILE) -p lenet.tpef -e 'run; info proc cycles;' | sed -n 2p) cycles"
+	@tput setaf 5; echo "Runtime: $$(echo quit | ttasim -a $(ADF_FILE) -p lenet.tpef -e 'run; info proc cycles;' | sed -n 2p) cycles"
+	@tput setaf 5; echo "Predicted Number: $$(echo quit | ttasim -a $(ADF_FILE) -p lenet.tpef -e 'run; x /u w predicted_number;' | sed -n 2p)"
 
 energy: lenet.tpef ./scripts/tce_energy_model.py
 	echo "$$(echo quit | ttasim -a $(ADF_FILE) -p lenet.tpef -e 'run; info proc stats;')\n" > log.txt
