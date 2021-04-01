@@ -1,9 +1,14 @@
 #ifdef HOST_DEBUG
 #include <stdio.h>
+#else
+#include "tceops.h"
 #endif /* HOST_DEBUG */
 
 #include "weights.h"
 
+#ifdef SIMD // Create SIMD Datatype
+typedef char vector_t __attribute__((__ext_vector_type__(4)));
+#endif
 
 void convolution2d(char* out_layer, char* in_layer, const char* kernel,
         int in_size, int kernel_size, int in_features, int out_features, int relu_en)
@@ -17,16 +22,45 @@ void convolution2d(char* out_layer, char* in_layer, const char* kernel,
 
     for (f = 0; f < out_features; f++) {
         for (row = 0; row < in_size - kernel_size + 1; row++) {
+            #pragma clang loop unroll(disable)
             for (col = 0; col < in_size - kernel_size + 1; col++) {
                 acc = 0;
+#if SIMD        // Define vector acc
+                volatile vector_t acc_vect = {0,0,0,0};
+#endif
                 for (k = 0; k < in_features; k++) {
+                    #pragma clang loop unroll(disable)
                     for (i = 0; i < kernel_size; i++) {
+
+#ifndef SIMD            // Sclar version
+                        #pragma clang loop unroll(disable)
                         for (j = 0; j < kernel_size; j++) {
                             acc += in_layer[k*in_size2 + (row+i)*in_size + (col+j)] *
                                     kernel[f*kernel_size3 + k*kernel_size2 + i*kernel_size + j];
                         }
+#else                   // If SIMD is enabled
+                        vector_t *in_vect_ptr = (vector_t *) &in_layer[k*in_size2 + (row+i)*in_size + (col)];
+                        vector_t *w_vect_ptr = (vector_t *) &kernel[f*kernel_size3 + k*kernel_size2 + i*kernel_size];
+                        // Load vector and do vector mac
+                        vector_t w_data, in_data;
+                        _TCEAS_LD8X4("data", w_vect_ptr, w_data);
+                        _TCEAS_LD8X4("data", in_vect_ptr, in_data);
+                        _TCE_MAC8X4(acc_vect, in_data, w_data, acc_vect);
+
+                        // Border case
+                        acc += in_layer[k*in_size2 + (row+i)*in_size + (col+kernel_size-1)] *
+                            kernel[f*kernel_size3 + k*kernel_size2 + i*kernel_size + kernel_size-1];
+#endif
                     }
                 }
+
+#ifdef SIMD            // If we use SIMD, extract individual elemnts and add them
+                int tmp;
+                for (int lane=0; lane<4; lane++) {
+                    _TCE_EXTRACTELEM8X4(acc_vect, i, tmp);
+                    acc += tmp;
+                }
+#endif
                 acc = acc >> 9;
                 if (acc > 127) {
                     acc = 127;
@@ -111,14 +145,13 @@ int argmax(char* numbers, int len)
 
 volatile int predicted_number;
 volatile unsigned int ecc, lcc;
+char layer1[5000];
+char layer2[5000];
+char net_out[10];
 
 int main()
 {
     int i;
-
-    char layer1[5000];
-    char layer2[5000];
-    char net_out[10];
 
     convolution2d(layer1, img, w0, 32, 5, 1, 6, 1);
     pooling2d(layer2, layer1, 28, 6);
