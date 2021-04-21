@@ -9,22 +9,24 @@ TCE_CC = tcecc
 TCC_FLAGS = -O3 --bubblefish2-scheduler
 
 ADF_FILE=base_tta.adf
-SYMBOL_NAMES=predicted_number,ecc,lcc
+SYMBOL_NAMES=predicted_number,ecc,lcc,net_out
 
 HDB_FILES="generate_base32.hdb,generate_rf_iu.hdb,almaif.hdb,asic_130nm_1.5V.hdb"
 
 # Benchmark source
 SRC = lenet.c
+INPUT_IMG = test_data/img1.png
 
 .PHONY : clean all host tce header test tcesim vhdl
 
-weights.h: ./scripts/generate_header.py weights.npy
-	./scripts/generate_header.py
+weights.h: ./scripts/generate_header.py weights.npy $(INPUT_IMG)
+	@./scripts/generate_header.py $(INPUT_IMG)
 
 header: weights.h
 
 host: weights.h $(SRC)
 	$(HOST_CC) $(SRC) -o lenet -DHOST_DEBUG
+	./lenet
 
 lenet.tpef: weights.h $(SRC) $(ADF_FILE)
 	$(TCE_CC) $(TCC_FLAGS) -a $(ADF_FILE) \
@@ -56,5 +58,5 @@ vhdl: lenet.tpef
 all: host tce
 
 clean:
-	rm -rf *.tpef lenet weights.h proge-out *.asm *.img *.dot log.txt *.trace* *.S
+	@rm -rf *.tpef lenet weights.h proge-out *.asm *.img *.dot log.txt *.trace* *.S *.ll *.bc a.out
 
