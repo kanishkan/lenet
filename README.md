@@ -18,6 +18,7 @@
         * Useful, if you like to contorl the memory layout of input and weights.
     * `tce_energy_model.py` - Script for analytical energy model
     * `setup.sh` - Shell script to update the TCE tools
+    * `scripts/compare_results.sh` - Regression test that compares the simulator result to expected results
 * `examples` - Some TTA design examples for your reference
 * `examples/fpga/pynq_notebook.ipynb` - Notebook for programming and testing your design on Pynq
 
